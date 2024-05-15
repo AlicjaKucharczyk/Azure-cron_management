@@ -34,7 +34,7 @@ CREATE FUNCTION cron_management.alter_job(job_id bigint, schedule text DEFAULT N
     SET search_path TO 'cron'
     AS $$ 
 BEGIN 
-        PERFORM alter_job(job_id, schedule, command, database, username, active);
+        EXECUTE cron.alter_job(job_id, schedule, command, database, username, active);
 END;
 $$;
 
@@ -82,7 +82,7 @@ CREATE FUNCTION cron_management.schedule_in_database(job_name text, schedule tex
     SET search_path TO 'cron'
     AS $$ 
 BEGIN 
-        RETURN schedule_in_database(job_name, schedule, command, database, username, active);
+        RETURN cron.schedule_in_database(job_name, schedule, command, database, username, active);
 END;
 $$;
 
@@ -132,7 +132,7 @@ CREATE FUNCTION cron_management.unschedule(job_id bigint) RETURNS boolean
     SET search_path TO 'cron'
     AS $$ 
 BEGIN 
-        RETURN unschedule(job_id);
+        RETURN cron.unschedule(job_id);
 END;
 $$;
 
@@ -148,51 +148,12 @@ CREATE FUNCTION cron_management.unschedule(job_name name) RETURNS boolean
     SET search_path TO 'cron'
     AS $$ 
 BEGIN 
-        RETURN unschedule(job_name);
+        RETURN cron.unschedule(job_name);
 END;
 $$;
 
 
 ALTER FUNCTION cron_management.unschedule(job_name name) OWNER TO stefan;
-
---
--- Name: job; Type: VIEW; Schema: cron_management; Owner: stefan
---
-
-CREATE VIEW cron_management.job AS
- SELECT jobid,
-    schedule,
-    command,
-    nodename,
-    nodeport,
-    database,
-    username,
-    active,
-    jobname
-   FROM cron.job;
-
-
-ALTER VIEW cron_management.job OWNER TO stefan;
-
---
--- Name: job_run_details; Type: VIEW; Schema: cron_management; Owner: stefan
---
-
-CREATE VIEW cron_management.job_run_details AS
- SELECT jobid,
-    runid,
-    job_pid,
-    database,
-    username,
-    command,
-    status,
-    return_message,
-    start_time,
-    end_time
-   FROM cron.job_run_details;
-
-
-ALTER VIEW cron_management.job_run_details OWNER TO stefan;
 
 --
 -- Name: SCHEMA cron_management; Type: ACL; Schema: -; Owner: stefan
@@ -230,6 +191,13 @@ GRANT ALL ON FUNCTION cron_management.schedule_in_database(job_name text, schedu
 
 
 --
+-- Name: FUNCTION show_job_runs(); Type: ACL; Schema: cron_management; Owner: stefan
+--
+
+GRANT ALL ON FUNCTION cron_management.show_job_runs() TO myuser;
+
+
+--
 -- Name: FUNCTION show_jobs(); Type: ACL; Schema: cron_management; Owner: stefan
 --
 
@@ -248,20 +216,6 @@ GRANT ALL ON FUNCTION cron_management.unschedule(job_id bigint) TO myuser;
 --
 
 GRANT ALL ON FUNCTION cron_management.unschedule(job_name name) TO myuser;
-
-
---
--- Name: TABLE job; Type: ACL; Schema: cron_management; Owner: stefan
---
-
-GRANT SELECT ON TABLE cron_management.job TO myuser;
-
-
---
--- Name: TABLE job_run_details; Type: ACL; Schema: cron_management; Owner: stefan
---
-
-GRANT SELECT ON TABLE cron_management.job_run_details TO myuser;
 
 
 --
